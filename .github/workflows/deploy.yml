@@ -30,6 +30,8 @@ jobs:
           node-version: 20
 
       - name: Build All Projects
+        env:
+          CI: false
         run: |
           mkdir -p dist
           
