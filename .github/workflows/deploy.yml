@@ -1,0 +1,238 @@
+name: Deploy Multi-App to GitHub Pages
+
+on:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: "pages"
+  cancel-in-progress: false
+
+jobs:
+  build-and-deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Build All Projects
+        run: |
+          mkdir -p dist
+          
+          # Build eat-n-split
+          echo "Building eat-n-split..."
+          cd eat-n-split
+          npm ci || npm install
+          npm run build
+          cd ..
+          mv eat-n-split/build dist/eat-n-split
+
+          # Build pizza-menu
+          echo "Building pizza-menu..."
+          cd pizza-menu
+          npm ci || npm install
+          npm run build
+          cd ..
+          mv pizza-menu/build dist/pizza-menu
+
+          # Build steps
+          echo "Building steps..."
+          cd steps
+          npm ci || npm install
+          npm run build
+          cd ..
+          mv steps/build dist/steps
+
+          # Build travel-list
+          echo "Building travel-list..."
+          cd travel-list
+          npm ci || npm install
+          npm run build
+          cd ..
+          mv travel-list/build dist/travel-list
+
+          # Create a root showcase landing page
+          cat << 'EOF' > dist/index.html
+          <!DOCTYPE html>
+          <html lang="en">
+          <head>
+            <meta charset="UTF-8" />
+            <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+            <title>React Course Projects Showcase</title>
+            <link rel="preconnect" href="https://fonts.googleapis.com">
+            <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+            <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+            <style>
+              * { box-sizing: border-box; margin: 0; padding: 0; }
+              body {
+                font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+                background: radial-gradient(circle at top, #1e293b 0%, #0f172a 100%);
+                color: #f8fafc;
+                min-height: 100vh;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                justify-content: center;
+                padding: 48px 20px;
+              }
+              header {
+                text-align: center;
+                margin-bottom: 48px;
+              }
+              h1 {
+                font-size: 2.5rem;
+                font-weight: 700;
+                background: linear-gradient(135deg, #38bdf8 0%, #818cf8 100%);
+                -webkit-background-clip: text;
+                -webkit-text-fill-color: transparent;
+                margin-bottom: 12px;
+              }
+              header p {
+                color: #94a3b8;
+                font-size: 1.1rem;
+              }
+              .grid {
+                display: grid;
+                grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+                gap: 24px;
+                width: 100%;
+                max-width: 900px;
+              }
+              .card {
+                background: rgba(30, 41, 59, 0.7);
+                backdrop-filter: blur(12px);
+                border: 1px solid rgba(255, 255, 255, 0.08);
+                border-radius: 16px;
+                padding: 28px;
+                text-decoration: none;
+                color: #f8fafc;
+                display: flex;
+                flex-direction: column;
+                justify-content: space-between;
+                position: relative;
+                transition: transform 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease;
+              }
+              .card:hover {
+                transform: translateY(-6px);
+                border-color: #38bdf8;
+                box-shadow: 0 16px 32px rgba(0, 0, 0, 0.4), 0 0 24px rgba(56, 189, 248, 0.15);
+              }
+              .icon {
+                font-size: 2.2rem;
+                margin-bottom: 16px;
+              }
+              .card h2 {
+                font-size: 1.4rem;
+                font-weight: 600;
+                margin-bottom: 8px;
+                color: #f1f5f9;
+              }
+              .card p {
+                color: #94a3b8;
+                font-size: 0.95rem;
+                line-height: 1.5;
+                margin-bottom: 20px;
+              }
+              .badge {
+                display: inline-block;
+                font-size: 0.75rem;
+                font-weight: 600;
+                padding: 4px 10px;
+                border-radius: 9999px;
+                align-self: flex-start;
+              }
+              .badge-ready {
+                background: rgba(34, 197, 94, 0.15);
+                color: #4ade80;
+                border: 1px solid rgba(34, 197, 94, 0.3);
+              }
+              .badge-dev {
+                background: rgba(234, 179, 8, 0.15);
+                color: #facc15;
+                border: 1px solid rgba(234, 179, 8, 0.3);
+              }
+              footer {
+                margin-top: 56px;
+                color: #64748b;
+                font-size: 0.9rem;
+                text-align: center;
+              }
+              footer a {
+                color: #38bdf8;
+                text-decoration: none;
+              }
+            </style>
+          </head>
+          <body>
+            <header>
+              <h1>React Projects Showcase</h1>
+              <p>Explore all 4 React applications hosted on GitHub Pages</p>
+            </header>
+
+            <main class="grid">
+              <a class="card" href="./pizza-menu/">
+                <div>
+                  <div class="icon">🍕</div>
+                  <h2>Pizza Menu</h2>
+                  <p>Authentic Italian restaurant menu with dynamic order logic and real-time open status.</p>
+                </div>
+                <span class="badge badge-ready">Live App</span>
+              </a>
+
+              <a class="card" href="./steps/">
+                <div>
+                  <div class="icon">🪜</div>
+                  <h2>Steps</h2>
+                  <p>Interactive multi-step advice and workflow stepper demonstrating state handling.</p>
+                </div>
+                <span class="badge badge-ready">Live App</span>
+              </a>
+
+              <a class="card" href="./travel-list/">
+                <div>
+                  <div class="icon">🧳</div>
+                  <h2>Travel List</h2>
+                  <p>Luggage packing checklist with sorting, quantity selector, and completion metrics.</p>
+                </div>
+                <span class="badge badge-ready">Live App</span>
+              </a>
+
+              <a class="card" href="./eat-n-split/">
+                <div>
+                  <div class="icon">🍽️</div>
+                  <h2>Eat 'N Split</h2>
+                  <p>Bill-splitting companion for tracking shared expenses with friends.</p>
+                </div>
+                <span class="badge badge-dev">In Development</span>
+              </a>
+            </main>
+
+            <footer>
+              <p>Maintained in <a href="https://github.com/devWina/React-course-contree">devWina/React-course-contree</a></p>
+            </footer>
+          </body>
+          </html>
+          EOF
+
+      - name: Upload GitHub Pages Artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: dist
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
