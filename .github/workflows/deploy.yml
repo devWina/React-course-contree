@@ -67,6 +67,14 @@ jobs:
           cd ..
           mv travel-list/build dist/travel-list
 
+          # Build use-popcorn
+          echo "Building use-popcorn..."
+          cd use-popcorn
+          npm ci || npm install
+          npm run build
+          cd ..
+          mv use-popcorn/build dist/use-popcorn
+
           # Create a root showcase landing page
           cat << 'EOF' > dist/index.html
           <!DOCTYPE html>
@@ -112,7 +120,7 @@ jobs:
                 grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
                 gap: 24px;
                 width: 100%;
-                max-width: 900px;
+                max-width: 960px;
               }
               .card {
                 background: rgba(30, 41, 59, 0.7);
@@ -182,7 +190,7 @@ jobs:
           <body>
             <header>
               <h1>React Projects Showcase</h1>
-              <p>Explore all 4 React applications hosted on GitHub Pages</p>
+              <p>Explore all 5 React applications hosted on GitHub Pages</p>
             </header>
 
             <main class="grid">
@@ -219,7 +227,16 @@ jobs:
                   <h2>Eat 'N Split</h2>
                   <p>Bill-splitting companion for tracking shared expenses with friends.</p>
                 </div>
-                <span class="badge badge-dev">In Development</span>
+                <span class="badge badge-ready">Live App</span>
+              </a>
+
+              <a class="card" href="./use-popcorn/">
+                <div>
+                  <div class="icon">🍿</div>
+                  <h2>usePopcorn</h2>
+                  <p>Movie rating and watchlist application powered by external movie API.</p>
+                </div>
+                <span class="badge badge-ready">Live App</span>
               </a>
             </main>
 
